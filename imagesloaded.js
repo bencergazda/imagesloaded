@@ -278,7 +278,23 @@ LoadingImage.prototype.check = function() {
   // bind to image as well for Firefox. #191
   this.img.addEventListener( 'load', this );
   this.img.addEventListener( 'error', this );
-  this.proxyImage.src = this.img.currentSrc || this.img.src;
+
+  var _this = this;
+  function getCurrentSrc() {
+    // `currentSrc` isn't necessarily available promptly. We need to wait a bit for it eg. in Chrome.
+    if (_this.img.currentSrc.length) {
+      _this.proxyImage.src = _this.img.currentSrc;
+    } else {
+      setTimeout(getCurrentSrc, 100);
+    }
+  }
+
+  // This should be enough to support srcset
+  if (typeof this.img.currentSrc === 'string') {
+    getCurrentSrc();
+  } else {
+    this.proxyImage.src = this.img.src;
+  }
 };
 
 LoadingImage.prototype.getIsImageComplete = function() {
